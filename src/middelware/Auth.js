@@ -5,12 +5,11 @@ const userAuth = async (req, res, next) => {
     try {
         const token = req.cookies.token; // Assuming the token is stored in a cookie
         if (!token) {
-            return res.status(401).send('Unauthorized: No token provided');
+            return res.status(401).send('Unauthorized: Please try logging in again');
         }
         
         const decoded = jwt.verify(token, 'BE@Starter'); // Verify the token
         const {id} =  decoded; // Extract user ID from the decoded token
-        console.log('Decoded user ID:', decoded); // Log the user ID for debugging
         const userData = await user.findById(id);
         if (!userData) {
             return res.status(404).send('User not found')   ;

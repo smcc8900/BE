@@ -7,11 +7,17 @@ app.use(cookieParser());
 app.use(express.json());
 const { getToken,verifyToken,setTokenCookie,clearTokenCookie } = require('./utils/TokenOps');
 const userAuth = require('./middelware/Auth'); // Importing the userAuth middleware
-
-
-
 const user = require('./models/users');
-const e = require('express');
+
+
+const authRouter = require('./routes/auth'); // Importing the auth routes
+const userRoutes  = require('./routes/user'); // Importing the user routes
+
+//Routes
+app.use('/', authRouter); // Using the auth routes
+app.use('/', userRoutes); // Using the user routes
+
+
 
 
 db_status().then(() => {
@@ -27,27 +33,6 @@ db_status().then(() => {
 }
 );
 
-// save API to create a new user
-app.post('/api/user/save', async (req, res) => {
-    // Logic to create a new user
-    const ecryptedPassword = await bcrypt.hash(req.body?.Password, 10);
-    const { firstName, lastName, Email, Password } = req.body;
-    const userData = new user({
-        firstName,
-        lastName,
-        Email,
-        Password: ecryptedPassword
-    });
-    try {
-        await userData.save()
-        return res.status(200).send('User created successfully');
-    } catch (err) {
-        console.error('Error creating user:', err);
-        return res.status(500).send('Internal Server Error');
-
-    }
-}
-);
 
 // API to get all users or a specific user by email
 app.get('/api/getUsers', userAuth, async (req, res) => {
@@ -90,26 +75,4 @@ app.patch('/api/updateUser', async (req, res) => {
     }
     
 })
-
-//API to Login a user
-app.post('/api/login', async (req, res) => {
-    const { Email, Password } = req.body;
-    try {
-        const userData = await user.findOne({ Email: Email });
-        if (!userData) {
-            return res.status(404).send('User not found');
-        }
-        const isPasswordValid = await bcrypt.compare(Password, userData.Password);
-        if (!isPasswordValid) {
-            return res.status(401).send('Invalid password');
-        }
-        const token = getToken(userData._id);
-        setTokenCookie(res, token);
-        return res.status(200).send('Login successful');
-    } catch (error) {
-        console.error('Error during login:', error);
-        return res.status(500).send('Internal Server Error' + error);
-    }
-})
-
 

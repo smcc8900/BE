@@ -3,9 +3,7 @@ const authRouter = express.Router()
 const bcrypt = require('bcrypt');
 const user = require('../models/users');
 const userAuth = require('../middelware/Auth');
-const { getToken, setTokenCookie } = require('../utils/TokenOps');
-// Middleware to authenticate user
-// save API to create a new user
+const { getToken, setTokenCookie, clearTokenCookie } = require('../utils/TokenOps');
 
 
 authRouter.post('/api/v1/user/save', async (req, res) => {
@@ -50,7 +48,7 @@ authRouter.post('/api/v1/login', async (req, res) => {
 })
 
 authRouter.post('/api/v1/logout', (req, res) => {
-    res.clearCookie('token'); // Clear the token cookie
+    clearTokenCookie(res); // Clear the token cookie
     return res.status(200).send('Logout successful');
 })
 module.exports = authRouter;

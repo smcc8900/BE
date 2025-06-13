@@ -28,7 +28,6 @@ const setTokenCookie = (res, token) => {
     });
 }
 const clearTokenCookie = (res) => {
-    // Clear the token cookie
     res.clearCookie('token');
 }
 

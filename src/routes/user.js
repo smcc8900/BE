@@ -3,7 +3,7 @@ const bcrypt = require('bcrypt');
 const user = require('../models/users');
 const userAuth = require('../middelware/Auth');
 const { getToken, setTokenCookie } = require('../utils/TokenOps');
-const { validation } = require('../utils/validations');
+const { validation, validatePassword } = require('../utils/validations');
 
 const userRoutes = express.Router();
 
@@ -29,4 +29,23 @@ userRoutes.patch('/api/v1/updateUser', userAuth, async (req, res) => {
     }
 })
 
+//API to udpdate user Password
+userRoutes.patch('/api/v1/updatePassword', userAuth, async (req, res) => {
+    try {
+        if (!validatePassword(req)) {
+            throw new Error('Invalid password format or passwords do not match');
+        }
+        const updatedPassword = await bcrypt.hash(req.body.Password, 10);
+        const updateData = await user.findByIdAndUpdate(req.user._id, { Password: updatedPassword }, { new: true, runValidators: true });
+        if (!updateData) {
+            throw new Error('An error occurred while updating the password, please try again later');
+        }
+        const token = getToken(updateData._id);
+        setTokenCookie(res, token);
+        res.status(200).json({ message: 'success', data: updateData });
+    } catch (err) {
+        return res.status(500).send('Internal Server Error ' + err.message);
+    }
+
+})
 module.exports = userRoutes

@@ -33,6 +33,10 @@ const userSchema = new mongoose.Schema(
                 message: 'You can only add up to 5 skills.'
             }   
      },
+     photoUri: {
+         type: String,
+         default: 'https://example.com/default-profile.png' // Default profile picture URL
+     },
     },
     {
         timestamps: true,   

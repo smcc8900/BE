@@ -12,10 +12,12 @@ const user = require('./models/users');
 
 const authRouter = require('./routes/auth'); // Importing the auth routes
 const userRoutes  = require('./routes/user'); // Importing the user routes
+const requestRouter = require('./routes/connectionRequests'); // Importing the connection request routes
 
 //Routes
 app.use('/', authRouter); // Using the auth routes
 app.use('/', userRoutes); // Using the user routes
+app.use('/', requestRouter); // Using the connection request routes
 
 
 

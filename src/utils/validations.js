@@ -1,3 +1,5 @@
+const connectionRequest = require('../models/sendRequest');
+const user = require('../models/users');
 const validation = (req) => {
     const allowedFields = ['firstName', 'lastName', 'Password', 'Email', 'skills'];
     if (!req || !req.body || typeof req.body !== 'object') {
@@ -21,9 +23,40 @@ const validatePassword = (req) => {
     return Password === confirmPassword;
 };
 
-module.exports = { validatePassword };
+const validateDataforRequest = async(status, receiverId, senderId) => {
+  const allowedStatus = ['ignore', 'interested'];
 
-module.exports = { validation, validatePassword };
+    if (!allowedStatus.includes(status)) {
+        throw new Error(`Invalid status: ${status}`);
+    }
+    if (!receiverId || !senderId) {
+        throw new Error('Receiver ID and Sender ID are required');
+    }
+    if (receiverId == senderId) {
+        throw new Error('Receiver ID and Sender ID cannot be the same');
+    }
+    const receiverExists = await user.findById(receiverId);
+    if (!receiverExists) {
+        throw new Error('Receiver does not exist');
+    }
+    const existingConnection = await connectionRequest.findOne({
+         $or: [
+            { senderId, receiverId },
+            { senderId: receiverId, receiverId: senderId }
+        ]       
+    });
+    if (existingConnection) {
+        throw new Error('Connection request already exists between these users');
+    }
+
+    return {
+        status,
+        receiverId,
+        senderId
+    };
+}
+
+module.exports = { validation, validatePassword,validateDataforRequest };
 
 
 

@@ -1,0 +1,3 @@
+
+*FromUserID -  senderId
+*toUserID - receiverId

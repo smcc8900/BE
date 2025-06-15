@@ -1,15 +1,17 @@
 const express = require('express');
 const bcrypt = require('bcrypt');
-const user = require('../models/users');
 const userAuth = require('../middelware/Auth');
 const { getToken, setTokenCookie } = require('../utils/TokenOps');
 const { validation, validatePassword } = require('../utils/validations');
+const {successResponse} = require('../utils/responseMapper');
+const user = require('../models/users');
+const connectionRequest = require('../models/sendRequest');
 
 const userRoutes = express.Router();
 
 // API to get all users or a specific user by email
 userRoutes.get('/api/v1/getUsers', userAuth, async (req, res) => {
-    res.status(200).json(req?.user);
+    res.status(200).json(successResponse(req?.user));
 });
 
 // API to update user details
@@ -23,7 +25,7 @@ userRoutes.patch('/api/v1/updateUser', userAuth, async (req, res) => {
         if (!updateData) {
             throw new Error('An error occurred while updating the user,please try again later');
         }
-        res.status(200).json(updateData);
+        res.status(200).json(successResponse(updateData));
     } catch (err) {
         res.status(500).send('Internal Server Error ' + err.message);
     }
@@ -42,10 +44,25 @@ userRoutes.patch('/api/v1/updatePassword', userAuth, async (req, res) => {
         }
         const token = getToken(updateData._id);
         setTokenCookie(res, token);
-        res.status(200).json({ message: 'success', data: updateData });
+        res.status(200).json(successResponse(updateData));
     } catch (err) {
         return res.status(500).send('Internal Server Error ' + err.message);
     }
 
 })
+
+// API to get all requests
+userRoutes.get('/api/v1/getAllPendingRequest', userAuth, async (req, res) => {
+    try {
+        const userId = req.user._id;
+        const allUsers = await connectionRequest.find({ 
+            receiverId:userId,
+            status: 'interested'
+        }).populate("senderId",['firstName','lastName','photoUri']); 
+        res.status(200).json(successResponse(allUsers));
+    } catch (err) {
+        console.error('Error fetching users:', err);
+        res.status(500).send('Internal Server Error');
+    }
+});
 module.exports = userRoutes
